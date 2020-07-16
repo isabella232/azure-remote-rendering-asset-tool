@@ -27,7 +27,7 @@ namespace
 void ExtensionFilter::setAllowedExtensions(const QString& extensions)
 {
     m_allowedExtensions.clear();
-    for (const QString& token : extensions.split(";", QString::SkipEmptyParts))
+    for (const QString& token : extensions.split(";", Qt::SkipEmptyParts))
     {
         QString t = token.trimmed();
         if (t[0] != '.')

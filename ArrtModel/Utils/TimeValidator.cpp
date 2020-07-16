@@ -13,7 +13,7 @@ void TimeValidator::fixup(QString& input) const
 
 QValidator::State TimeValidator::validate(QString& input, int& /*pos*/) const
 {
-    QStringList numbers = input.split(tr(":"), QString::SkipEmptyParts);
+    QStringList numbers = input.split(tr(":"), Qt::SkipEmptyParts);
     if (numbers.size() > 3)
     {
         return State::Invalid;
@@ -66,7 +66,7 @@ QString TimeValidator::minutesToString(int minutes)
 int TimeValidator::stringToMinutes(const QString& s)
 {
     int minutes = 0;
-    QStringList numbers = s.split(tr(":"), QString::SkipEmptyParts);
+    QStringList numbers = s.split(tr(":"), Qt::SkipEmptyParts);
     if (numbers.size() >= 3)
     {
         minutes += numbers[numbers.size() - 3].toInt() * 60 * 24;

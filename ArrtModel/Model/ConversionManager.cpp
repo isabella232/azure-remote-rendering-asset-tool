@@ -247,13 +247,13 @@ void ConversionManager::startConversion(ConversionManager::ConversionId newConve
                         }
                         else
                         {
-                            conversion->m_endConversionTime.start();
+                            conversion->m_endConversionTime = QTime::currentTime();
                             conversion->updateConversionStatus(Conversion::SYNCHRONIZATION_FAILED, tr("Failure reason: %1.").arg(tr("Failed retrieving the session UUID")));
                         }
                     }
                     else
                     {
-                        conversion->m_endConversionTime.start();
+                        conversion->m_endConversionTime = QTime::currentTime();
                         conversion->updateConversionStatus(Conversion::SYNCHRONIZATION_FAILED, tr("Failure reason: %1.").arg(RR::ResultToString(async->Status().value())));
                     }
                 }
@@ -294,7 +294,7 @@ void ConversionManager::startConversion(ConversionManager::ConversionId newConve
         newConversion->m_conversionCall = async.value();
         newConversion->m_conversionCall->Completed(std::move(onConversionStartRequestFinished));
 
-        newConversion->m_startConversionTime.start();
+        newConversion->m_startConversionTime = QTime::currentTime();
         newConversion->m_endConversionTime = newConversion->m_startConversionTime;
         thisPtr->changeConversionCount(1);
     }
@@ -344,7 +344,7 @@ void ConversionManager::updateConversions(bool updateRemotely)
         // if it's in "START_REQUESTED" state it means the server hasn't answered yet, so we can't query the state.
         if (conversion->isActive() && conversion->m_status != Conversion::START_REQUESTED && conversion->m_statusAsync == nullptr)
         {
-            conversion->m_endConversionTime.start();
+            conversion->m_endConversionTime = QTime::currentTime();
             Q_EMIT conversionUpdated(id);
             if (updateRemotely)
             {
@@ -395,7 +395,7 @@ void ConversionManager::updateConversions(bool updateRemotely)
                                             conversionStatus = Conversion::UNKNOWN;
                                             break;
                                     }
-                                    conversion->m_endConversionTime.start();
+                                    conversion->m_endConversionTime = QTime::currentTime();
 
                                     const bool wasActive = conversion->isActive();
                                     conversion->updateConversionStatus(conversionStatus, QString::fromStdString(message));

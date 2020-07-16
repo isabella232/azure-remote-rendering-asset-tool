@@ -24,7 +24,7 @@ void BaseLayout::addItem(QLayoutItem* item)
 
 Qt::Orientations BaseLayout::expandingDirections() const
 {
-    return nullptr;
+    return {};
 }
 
 int BaseLayout::count() const

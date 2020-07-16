@@ -42,14 +42,14 @@ void EntitySelection::select(const RR::ApiHandle<RR::Entity>& object, SelectionT
             {
                 //it's selected already. Deselect all of the others objects
                 m_selected.remove(object);
-                justDeselected = m_selected.toList();
+                justDeselected = m_selected.values();
             }
             else
             {
                 // if it was not selected it means we are just selecting it now
                 // and deselecting everything
                 justSelected.push_back(object);
-                justDeselected = m_selected.toList();
+                justDeselected = m_selected.values();
             }
 
             // make the selected list only contain the object
@@ -74,7 +74,7 @@ void EntitySelection::deselectAll()
 {
     QSet<RR::ApiHandle<RR::Entity>> deselected;
     m_selected.swap(deselected);
-    selectionChanged({}, deselected.toList());
+    selectionChanged({}, deselected.values());
 }
 
 QSet<RR::ApiHandle<RR::Entity>>::const_iterator EntitySelection::begin() const
@@ -107,7 +107,7 @@ void EntitySelection::setSelection(const QList<RR::ApiHandle<RR::Entity>>& newSe
             // so removing it from m_selected it means removing it from the justDeselected list
         }
     }
-    justDeselected = m_selected.toList();
+    justDeselected = m_selected.values();
     m_selected.clear();
     for (auto&& entity : newSelection)
     {

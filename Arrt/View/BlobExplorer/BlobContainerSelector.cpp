@@ -60,8 +60,9 @@ BlobContainerSelector::BlobContainerSelector(BlobContainerSelectorModel* model, 
     connect(model, &BlobContainerSelectorModel::currentContainerChanged, this, onModelContainerChanged);
     onModelContainerChanged();
 
-    auto onIndexChanged = [this](const QString& container) {
+    auto onIndexChanged = [this](int i) {
+        QString container = m_selector->itemText(i);
         m_model->setCurrentContainer(container);
     };
-    connect(m_selector, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this, onIndexChanged);
+    connect(m_selector, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, onIndexChanged);
 }

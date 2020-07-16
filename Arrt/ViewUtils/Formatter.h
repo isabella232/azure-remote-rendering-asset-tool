@@ -22,7 +22,7 @@ public:
     QString textFromValue(int value) const
     {
         QString result;
-        return result.sprintf(m_format.toUtf8().data(), value);
+        return result.asprintf(m_format.toUtf8().data(), value);
     }
 
     int valueFromText(const QString& text, bool* ok) const
@@ -59,7 +59,7 @@ public:
     QString textFromValue(double value) const
     {
         QString result;
-        result.sprintf(m_format.toUtf8().data(), value);
+        result.asprintf(m_format.toUtf8().data(), value);
         if (m_removeTrailingZeros && !result.isEmpty())
         {
             //find the first non zero digit at the end of the formatted number

@@ -177,7 +177,7 @@ void AzureStorageManager::createContainer(const QString& containerName, std::fun
             }
             catch (std::exception& e)
             {
-                qWarning(LoggingCategory::azureStorage) << tr("Failed creating a container:") << containerName << endl
+                qWarning(LoggingCategory::azureStorage) << tr("Failed creating a container:") << containerName << Qt::endl
                                                         << e.what();
             }
             QMetaObject::invokeMethod(QApplication::instance(), [endCallback, succeeded, thisPtr]() {
@@ -190,7 +190,7 @@ void AzureStorageManager::createContainer(const QString& containerName, std::fun
     }
     catch (std::exception& e)
     {
-        qWarning(LoggingCategory::azureStorage) << tr("Error invoking the container creation for container:") << containerName << endl
+        qWarning(LoggingCategory::azureStorage) << tr("Error invoking the container creation for container:") << containerName << Qt::endl
                                                 << e.what();
         endCallback(false);
     }
