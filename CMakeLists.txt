@@ -20,28 +20,15 @@ endif()
 
 
 # common setup for exe targets (Arrt and Tests)
-function(addQtDeployment _TARGET)
-    get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
-    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
-    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
-
-    add_custom_command(
-        TARGET ${_TARGET} POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E
-            env PATH="${_qt_bin_dir}" "${WINDEPLOYQT_EXECUTABLE}"
-                "$<TARGET_FILE:${_TARGET}>" --no-translations --no-webkit2 --no-system-d3d-compiler --no-virtualkeyboard --no-angle --no-opengl-sw --no-compiler-runtime
-        COMMENT "Running windeployqt..."
-    )
-    add_custom_command(
-        TARGET ${_TARGET} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${LIB_REST_NAME}.dll
-            ${LIB_BLOB_NAME}.dll
-            ${LIB_ARR_BIN}/RemoteRenderingClient.dll
-            ${LIB_ARR_BIN}/PerceptionDevice.dll
-            ${LIB_ARR_BIN}/Microsoft.Holographic.HybridRemoting.dll
-            $<TARGET_FILE_DIR:${_TARGET}>
-    )
+function(copyDlls _TARGET)
+     add_custom_command(
+         TARGET ${_TARGET} POST_BUILD
+         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+             ${LIB_ARR_BIN}/RemoteRenderingClient.dll
+             ${LIB_ARR_BIN}/PerceptionDevice.dll
+             ${LIB_ARR_BIN}/Microsoft.Holographic.HybridRemoting.dll
+             $<TARGET_FILE_DIR:${_TARGET}>
+     )
 endfunction()
 
 # set variables for nuget libraries
@@ -155,26 +142,13 @@ target_include_directories(${TARGET} PUBLIC "${SOURCE_ROOT}")
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 target_link_libraries(${TARGET} PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
 
-# target_link_libraries(${TARGET} PUBLIC azure-storage-cpp)
-# find_package(cpprestsdk CONFIG REQUIRED)
+find_package(cpprestsdk REQUIRED)
+target_link_libraries(${TARGET} PUBLIC cpprestsdk::cpprest)
 
 find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
 find_library(WASTORAGE_LIBRARY wastorage)
 target_include_directories(${TARGET} PUBLIC ${WASTORAGE_INCLUDE_DIR})
 target_link_libraries(${TARGET} PUBLIC ${WASTORAGE_LIBRARY})
-
-
-# To find and use azure-storage-cpp
-# find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
-# find_library(WASTORAGE_LIBRARY wastorage)
-# target_include_directories(${TARGET} PUBLIC ${WASTORAGE_INCLUDE_DIR})
-# target_link_libraries(${TARGET} PUBLIC ${WASTORAGE_LIBRARY})
-
-# target_link_libraries(${TARGET} PUBLIC "${LIB_BLOB_NAME}.lib")
-# target_include_directories(${TARGET} PUBLIC "${LIB_BLOB_ROOT}/build/native/include")
-
-# target_link_libraries(${TARGET} PUBLIC "${LIB_REST_NAME}.lib")
-# target_include_directories(${TARGET} PUBLIC "${LIB_REST_ROOT}/build/native/include")
 
 target_link_libraries(${TARGET} PUBLIC "${LIB_ARR_LIB}/RemoteRenderingClient.lib")
 target_include_directories(${TARGET} PUBLIC ${LIB_ARR_INCLUDE})
@@ -222,7 +196,7 @@ endforeach()
 source_group(TREE "${SOURCE_ROOT}" FILES ${SOURCE_LIST})
 
 add_executable(${TARGET} WIN32 ${SOURCE_LIST})
-addQtDeployment(${TARGET})
+copyDlls(${TARGET})
 
 target_include_directories(${TARGET} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/${TARGET}")
 target_include_directories(${TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ArrtModel")
@@ -247,7 +221,7 @@ enable_testing()
 #    get_filename_component( case_name ${case_file} NAME_WE )
 #    set (case_name test_${case_name})
 #    add_executable(${case_name} ${case_file})
-#    addQtDeployment(${case_name})
+#    copyDlls(${case_name})
 #    target_include_directories(${case_name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ArrtModel")
 #    target_link_libraries(${case_name} PUBLIC ArrtModel)
 #    target_link_libraries(${case_name} PRIVATE gtest_main)
@@ -264,7 +238,7 @@ foreach(case_file ${TEST_LIST})
     set (case_name test_${case_name})
     add_executable(${case_name} ${case_file})
     
-    addQtDeployment(${case_name})
+    copyDlls(${case_name})
     target_link_libraries(${case_name} PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
     target_link_libraries(${case_name} PUBLIC d3d11.lib DXGI.lib)
 
