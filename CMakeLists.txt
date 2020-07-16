@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.12)
 
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
 # submodule update
 find_package(Git QUIET)
 if(GIT_FOUND)
@@ -46,12 +48,6 @@ endfunction()
 
 set( CFG $<IF:$<CONFIG:Debug>,DEBUG,RELEASE> )
 set( POSTFIX $<$<CONFIG:Debug>:d> )
-
-set(LIB_BLOB_ROOT "${CMAKE_BINARY_DIR}/packages/Microsoft.Azure.Storage.CPP.v140.5.0.0")
-set(LIB_BLOB_NAME "${LIB_BLOB_ROOT}/lib/native/v140/x64/${CFG}/wastorage${POSTFIX}")
-
-set(LIB_REST_ROOT "${CMAKE_BINARY_DIR}/packages/cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.9.1")
-set(LIB_REST_NAME "${LIB_REST_ROOT}/lib/native/v140/windesktop/msvcstl/dyn/rt-dyn/x64/${CFG}/cpprest140${POSTFIX}_2_9")
 
 if ("$ENV{LIB_ARR_USE_LOCAL}" STREQUAL "true")
     set(LIB_ARR_BIN $<IF:$<CONFIG:Debug>,$ENV{LIB_ARR_BIN_DEBUG},$ENV{LIB_ARR_BIN_RELEASE}>)
@@ -159,11 +155,26 @@ target_include_directories(${TARGET} PUBLIC "${SOURCE_ROOT}")
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 target_link_libraries(${TARGET} PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
 
-target_link_libraries(${TARGET} PUBLIC "${LIB_BLOB_NAME}.lib")
-target_include_directories(${TARGET} PUBLIC "${LIB_BLOB_ROOT}/build/native/include")
+# target_link_libraries(${TARGET} PUBLIC azure-storage-cpp)
+# find_package(cpprestsdk CONFIG REQUIRED)
 
-target_link_libraries(${TARGET} PUBLIC "${LIB_REST_NAME}.lib")
-target_include_directories(${TARGET} PUBLIC "${LIB_REST_ROOT}/build/native/include")
+find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+find_library(WASTORAGE_LIBRARY wastorage)
+target_include_directories(${TARGET} PUBLIC ${WASTORAGE_INCLUDE_DIR})
+target_link_libraries(${TARGET} PUBLIC ${WASTORAGE_LIBRARY})
+
+
+# To find and use azure-storage-cpp
+# find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+# find_library(WASTORAGE_LIBRARY wastorage)
+# target_include_directories(${TARGET} PUBLIC ${WASTORAGE_INCLUDE_DIR})
+# target_link_libraries(${TARGET} PUBLIC ${WASTORAGE_LIBRARY})
+
+# target_link_libraries(${TARGET} PUBLIC "${LIB_BLOB_NAME}.lib")
+# target_include_directories(${TARGET} PUBLIC "${LIB_BLOB_ROOT}/build/native/include")
+
+# target_link_libraries(${TARGET} PUBLIC "${LIB_REST_NAME}.lib")
+# target_include_directories(${TARGET} PUBLIC "${LIB_REST_ROOT}/build/native/include")
 
 target_link_libraries(${TARGET} PUBLIC "${LIB_ARR_LIB}/RemoteRenderingClient.lib")
 target_include_directories(${TARGET} PUBLIC ${LIB_ARR_INCLUDE})
