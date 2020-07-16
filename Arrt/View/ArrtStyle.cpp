@@ -103,6 +103,8 @@ ArrtStyle::ArrtStyle()
 
 void ArrtStyle::polish(QPalette& pal)
 {
+    QProxyStyle::polish(pal);
+
     pal.setColor(QPalette::Window, QColor(53, 53, 53));
     pal.setColor(QPalette::WindowText, Qt::white);
     pal.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
@@ -130,6 +132,8 @@ void ArrtStyle::polish(QPalette& pal)
 
 void ArrtStyle::polish(QApplication* app)
 {
+    QProxyStyle::polish(app);
+
     app->setFont(s_widgetFont, "QWidget");
 
     // icons have to be created only after the GuiApplication is created
@@ -178,6 +182,11 @@ void ArrtStyle::polish(QApplication* app)
     s_backIcon = QIcon(":/ArrtApplication/Icons/back.svg");
 
     FocusableContainer::installFocusListener(app);
+
+    // set global palette
+    QPalette p = app->palette();
+    polish(p);
+    app->setPalette(p);
 }
 
 void ArrtStyle::drawControl(ControlElement element, const QStyleOption* opt, QPainter* p, const QWidget* widget) const
