@@ -139,8 +139,8 @@ add_library(${TARGET} ${SOURCE_LIST})
 
 target_include_directories(${TARGET} PUBLIC "${SOURCE_ROOT}")
 
-find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
-target_link_libraries(${TARGET} PUBLIC Qt5::Core Qt5::Widgets Qt5::Gui)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+target_link_libraries(${TARGET} PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets)
 
 find_package(cpprestsdk REQUIRED)
 target_link_libraries(${TARGET} PUBLIC cpprestsdk::cpprest)
