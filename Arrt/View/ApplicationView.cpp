@@ -31,6 +31,20 @@
 #include <Widgets/FlowLayout.h>
 #include <Widgets/Navigator.h>
 
+namespace
+{
+    void focusFirstChild(QWidget* w)
+    {
+        //find the widget to give focus to
+        w = w->nextInFocusChain();
+        while (!w->isVisible() || !w->isEnabled() || (w->focusPolicy() & Qt::FocusPolicy::TabFocus) == 0)
+        {
+            w = w->nextInFocusChain();
+        }
+        w->setFocus();
+    }
+} // namespace
+
 using namespace std::chrono_literals;
 
 ApplicationView::ApplicationView(ApplicationModel* model, QWidget* parent)
@@ -115,13 +129,7 @@ ApplicationView::ApplicationView(ApplicationModel* model, QWidget* parent)
             m_settingsView->setVisible(checked);
             if (checked)
             {
-                //find the widget to give focus to
-                QWidget* w = m_settingsView;
-                while (w->isVisible() && w->isEnabled() && (w->focusPolicy() & Qt::FocusPolicy::TabFocus))
-                {
-                    w = w->nextInFocusChain();
-                }
-                w->setFocus();
+                focusFirstChild(m_settingsView);
             }
         });
 
@@ -151,6 +159,10 @@ ApplicationView::ApplicationView(ApplicationModel* model, QWidget* parent)
 
         QObject::connect(logButton, &NotificationButtonView::toggled, this, [this](bool checked) {
             m_logView->setVisible(checked);
+            if (checked)
+            {
+                focusFirstChild(m_logView);
+            }
         });
 
         m_logView->setVisible(false);
