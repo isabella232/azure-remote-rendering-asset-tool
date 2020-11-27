@@ -75,8 +75,12 @@ public:
     ArrSessionManager(ArrFrontend* frontEnd, Configuration* configuration, QObject* parent);
     ~ArrSessionManager();
 
+
+	RR::RenderingSessionCreationParams getSessionCreationParams() const;
+	void setSessionCreationParams(RR::RenderingSessionCreationParams params);
+
     // start a session. It only works if no session is currently running
-    bool startSession(const RR::RenderingSessionCreationParams& info);
+    bool startSession();
     // stop a session. It only works if the session is running, or it's starting
     bool stopSession();
 
@@ -182,7 +186,7 @@ private:
     // cached properties coming from RR::AzureSession::GetRenderingSessionPropertiesAsync
     RR::RenderingSessionProperties m_lastProperties = {};
 
-    int m_extensionMinutes;
+    uint m_extensionMinutes;
     bool m_extendAutomatically;
 
     QTimer* m_updateTimer = nullptr;
@@ -213,4 +217,6 @@ private:
     RR::Result m_lastError = RR::Result::Success;
 
     bool m_autoRotateRoot = false;
+
+	RR::RenderingSessionCreationParams m_sessionCreationParams = { {1, 0,0}, {RR::RenderingSessionVmSize::Standard} };
 };

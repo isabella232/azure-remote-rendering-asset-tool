@@ -51,7 +51,6 @@ SessionCreationView::SessionCreationView(SessionCreationModel* model, QWidget* p
 
         QObject::connect(m_automaticExtend, &FlatButton::toggled, this, [this](bool checked) {
             m_model->setAutomaticallyExtended(checked);
-            updateUi();
         });
         ext_l->addWidget(m_automaticExtend);
 

@@ -132,6 +132,10 @@ ArrSessionManager::ArrSessionManager(ArrFrontend* frontEnd, Configuration* confi
     , m_frontend(frontEnd)
     , m_configuration(configuration)
 {
+	m_sessionCreationParams.Size = static_cast<RR::RenderingSessionVmSize>(m_configuration->getUiState("sessionManager:size", (int)m_sessionCreationParams.Size));
+	int leaseTime = m_configuration->getUiState("sessionManager:leaseTime", m_sessionCreationParams.MaxLease.hour * 60 + m_sessionCreationParams.MaxLease.minute);
+	m_sessionCreationParams.MaxLease = { leaseTime / 60, leaseTime % 60, 0 };
+
     m_extensionMinutes = m_configuration->getUiState("sessionManager:extension", 10);
     m_extendAutomatically = m_configuration->getUiState("sessionManager:extendAutomatically", true);
 
@@ -210,6 +214,8 @@ ArrSessionManager::ArrSessionManager(ArrFrontend* frontEnd, Configuration* confi
 
 ArrSessionManager::~ArrSessionManager()
 {
+    m_configuration->setUiState("sessionManager:size", (int)m_sessionCreationParams.Size);
+    m_configuration->setUiState("sessionManager:leaseTime", m_sessionCreationParams.MaxLease.hour * 60 + m_sessionCreationParams.MaxLease.minute);
     m_configuration->setUiState("sessionManager:extension", m_extensionMinutes);
     m_configuration->setUiState("sessionManager:extendAutomatically", m_extendAutomatically);
     if (m_session)
@@ -219,7 +225,18 @@ ArrSessionManager::~ArrSessionManager()
     }
 }
 
-bool ArrSessionManager::startSession(const RR::RenderingSessionCreationParams& info)
+RR::RenderingSessionCreationParams ArrSessionManager::getSessionCreationParams() const
+{
+	return m_sessionCreationParams;
+}
+
+void ArrSessionManager::setSessionCreationParams(RR::RenderingSessionCreationParams params)
+{
+    m_sessionCreationParams = params;
+}
+
+
+bool ArrSessionManager::startSession()
 {
     // don't call again if the previous start request isn't completed or if the session is already running
     if (m_startRequested || getSessionStatus().isRunning())
@@ -231,10 +248,10 @@ bool ArrSessionManager::startSession(const RR::RenderingSessionCreationParams& i
     m_configuration->setRunningSession({});
 
     qInfo(LoggingCategory::renderingSession)
-        << tr("Requesting new session:\n") << info;
+        << tr("Requesting new session:\n") << m_sessionCreationParams;
 
     QPointer<ArrSessionManager> thisPtr = this;
-    auto async = m_frontend->getFrontend()->CreateNewRenderingSessionAsync(info);
+    auto async = m_frontend->getFrontend()->CreateNewRenderingSessionAsync(m_sessionCreationParams);
     if (async)
     {
         m_startRequested = async.value();
@@ -379,9 +396,12 @@ SessionDescriptor ArrSessionManager::getSessionDescriptor() const
 
 void ArrSessionManager::setExtensionTime(uint minutesToAdd, bool extendAutomatically)
 {
-    m_extensionMinutes = minutesToAdd;
-    m_extendAutomatically = extendAutomatically;
-    changed();
+	if (minutesToAdd != m_extensionMinutes || m_extendAutomatically != extendAutomatically)
+	{
+		m_extensionMinutes = minutesToAdd;
+		m_extendAutomatically = extendAutomatically;
+		changed();
+	}
 }
 
 void ArrSessionManager::getExtensionTime(uint& outMinutesToAdd, bool& outExtendAutomatically) const

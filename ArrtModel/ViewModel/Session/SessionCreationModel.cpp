@@ -5,62 +5,60 @@
 SessionCreationModel::SessionCreationModel(ArrSessionManager* sessionManager, Configuration* configuration, QObject* parent)
     : SessionModel(sessionManager, configuration, parent)
 {
-    m_size = static_cast<Size>(m_configuration->getUiState("sessionCreation:size", (int)Size::Standard));
-    m_leaseTime = m_configuration->getUiState("sessionCreation:leaseTime", Time(1, 0).m_totalMinutes);
-    m_extendAutomatically = m_configuration->getUiState("sessionCreation:extendAutomatically", true);
-    m_extensionMinutes = m_configuration->getUiState("sessionCreation:extensionMinutes", 30);
-
-    connect(m_sessionManager, &ArrSessionManager::onEnabledChanged, this, [this]() {
+	connect(m_sessionManager, &ArrSessionManager::onEnabledChanged, this, [this]() {
         Q_EMIT onEnabledChanged();
     });
 }
 
-SessionCreationModel::~SessionCreationModel()
-{
-    m_configuration->setUiState("sessionCreation:size", (int)m_size);
-    m_configuration->setUiState("sessionCreation:leaseTime", m_leaseTime.m_totalMinutes);
-    m_configuration->setUiState("sessionCreation:extendAutomatically", m_extendAutomatically);
-    m_configuration->setUiState("sessionCreation:extensionMinutes", m_extensionMinutes);
-}
-
 SessionModel::Size SessionCreationModel::getSize() const
 {
-    return m_size;
+    return static_cast<SessionModel::Size>(m_sessionManager->getSessionCreationParams().Size);
 }
 
 void SessionCreationModel::setSize(Size size)
 {
-    m_size = size;
+    auto params = m_sessionManager->getSessionCreationParams();
+    params.Size = RR::RenderingSessionVmSize(size);
+    m_sessionManager->setSessionCreationParams(params);
 }
 
 SessionModel::Time SessionCreationModel::getLeaseTime() const
 {
-    return m_leaseTime;
+    auto params = m_sessionManager->getSessionCreationParams();
+	return { params.MaxLease.hour, params.MaxLease.minute };
 }
 
 void SessionCreationModel::setLeaseTime(const Time& leaseTime)
 {
-    m_leaseTime = leaseTime;
+	auto params = m_sessionManager->getSessionCreationParams();
+    params.MaxLease = {(int)leaseTime.getHours(), (int)leaseTime.getMinutes(), 0};
+	m_sessionManager->setSessionCreationParams(params);
 }
 
 bool SessionCreationModel::isAutomaticallyExtended() const
 {
-    return m_extendAutomatically;
+	uint minutesToAdd;
+	bool extendAutomatically;
+	m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
+    return extendAutomatically;
 }
 
 void SessionCreationModel::setAutomaticallyExtended(bool autoExtension)
 {
-    m_extendAutomatically = autoExtension;
+	m_sessionManager->setExtensionTime(getExtensionTime().m_totalMinutes, autoExtension);
 }
 
 SessionModel::Time SessionCreationModel::getExtensionTime() const
 {
-    return m_extensionMinutes;
+	uint minutesToAdd;
+	bool extendAutomatically;
+	m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
+	return minutesToAdd;
 }
 
 void SessionCreationModel::setExtensionTime(Time extensionTime)
 {
-    m_extensionMinutes = extensionTime.m_totalMinutes;
+	m_sessionManager->setExtensionTime(extensionTime.m_totalMinutes, isAutomaticallyExtended());
 }
 
 // try to start a session
@@ -68,14 +66,7 @@ bool SessionCreationModel::start()
 {
     if (!isRunning())
     {
-        RR::RenderingSessionCreationParams param;
-        param.Size = RR::RenderingSessionVmSize(m_size);
-        param.MaxLease = {(int)m_leaseTime.getHours(), (int)m_leaseTime.getMinutes(), 0};
-
-        //set also the automatic extension
-        m_sessionManager->setExtensionTime(m_extensionMinutes, m_extendAutomatically);
-
-        const bool succeeded = m_sessionManager->startSession(param);
+        const bool succeeded = m_sessionManager->startSession();
         changed();
         if (!succeeded)
         {

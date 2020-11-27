@@ -14,7 +14,6 @@ class SessionCreationModel : public SessionModel
     Q_OBJECT
 public:
     SessionCreationModel(ArrSessionManager* sessionManager, Configuration* configuration, QObject* parent);
-    virtual ~SessionCreationModel();
 
     Size getSize() const;
     void setSize(Size size);
@@ -39,10 +38,4 @@ public:
 
 Q_SIGNALS:
     void onEnabledChanged();
-
-private:
-    Time m_leaseTime;
-    Size m_size;
-    int m_extensionMinutes;
-    bool m_extendAutomatically;
 };
