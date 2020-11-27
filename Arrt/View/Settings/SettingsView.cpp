@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <QVBoxLayout>
 #include <View/Settings/ArrAccountSettingsView.h>
 #include <View/Settings/CameraSettingsView.h>
@@ -9,9 +10,25 @@
 #include <Widgets/ReadOnlyText.h>
 #include <Widgets/VerticalScrollArea.h>
 
+namespace
+{
+    bool isAncestor(QWidget* ancestor, QWidget* child)
+    {
+        for (QWidget* w = child; w; w = w->parentWidget())
+        {
+            if (w == ancestor)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+} // namespace
+
 SettingsView::SettingsView(SettingsModel* settingsModel, QWidget* parent)
     : QWidget(parent)
 {
+    setVisible(false);
     setContentsMargins(0, 0, 0, 0);
     auto* listLayout = new QVBoxLayout(this);
     listLayout->setContentsMargins(0, 0, 0, 0);
@@ -50,4 +67,43 @@ SettingsView::SettingsView(SettingsModel* settingsModel, QWidget* parent)
         fc->setToolTip(tr("Camera Settings"), tr("These settings will immediately affect the navigation in the 3D viewport and the 3D projection"));
         scrollArea->getContentLayout()->addWidget(fc);
     }
+}
+
+void SettingsView::open()
+{
+    if (m_open)
+    {
+        return;
+    }
+    m_open = true;
+    setVisible(true);
+    QWidget* w = nextInFocusChain();
+    while (!w->isVisible() || !w->isEnabled() || (w->focusPolicy() & Qt::FocusPolicy::TabFocus) == 0)
+    {
+        w = w->nextInFocusChain();
+    }
+    w->setFocus();
+
+    m_focusConnection = connect(qApp, &QApplication::focusChanged, this, [this](QWidget* /*old*/, QWidget* now) {
+        if (now && now->focusPolicy() & Qt::FocusPolicy::TabFocus)
+        {
+            //check if the new focus is a parent of this
+            if (isAncestor(now, this) || isAncestor(this, now))
+            {
+                return;
+            }
+            Q_EMIT focusOutside();
+        }
+    });
+}
+
+void SettingsView::close()
+{
+    if (!m_open)
+    {
+        return;
+    }
+    m_open = false;
+    disconnect(m_focusConnection);
+    setVisible(false);
 }

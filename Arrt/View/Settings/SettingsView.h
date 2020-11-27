@@ -7,6 +7,16 @@ class SettingsModel;
 
 class SettingsView : public QWidget
 {
+    Q_OBJECT
 public:
     SettingsView(SettingsModel* settingsModel, QWidget* parent = nullptr);
+    void open();
+    void close();
+
+Q_SIGNALS:
+    void focusOutside();
+
+private:
+    bool m_open = false;
+    QMetaObject::Connection m_focusConnection;
 };
