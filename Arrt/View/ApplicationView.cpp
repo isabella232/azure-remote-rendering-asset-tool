@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QMenu>
@@ -126,10 +127,19 @@ ApplicationView::ApplicationView(ApplicationModel* model, QWidget* parent)
         m_settingsView = new SettingsView(settingsModel, this);
         m_settingsView->setVisible(false);
         connect(settingsButton, &FlatButton::toggled, this, [this](bool checked) {
-            m_settingsView->setVisible(checked);
             if (checked)
             {
-                focusFirstChild(m_settingsView);
+                m_settingsView->open();
+            }
+            else
+            {
+                m_settingsView->close();
+            }
+        });
+        connect(m_settingsView, &SettingsView::focusOutside, [settingsButton]() {
+            if (QApplication::focusWidget() != settingsButton)
+            {
+                settingsButton->setChecked(false);
             }
         });
 
