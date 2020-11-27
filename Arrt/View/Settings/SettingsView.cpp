@@ -78,7 +78,7 @@ void SettingsView::open()
     m_open = true;
     setVisible(true);
     QWidget* w = nextInFocusChain();
-    while (!w->isVisible() || !w->isEnabled() || (w->focusPolicy() & Qt::FocusPolicy::TabFocus) == 0)
+    while (!w->isEnabled() || (w->focusPolicy() & Qt::FocusPolicy::TabFocus) == 0)
     {
         w = w->nextInFocusChain();
     }
