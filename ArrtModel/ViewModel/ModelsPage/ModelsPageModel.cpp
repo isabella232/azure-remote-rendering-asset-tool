@@ -211,7 +211,7 @@ void ModelsPageModel::setModelSasUri(QString sasUri)
 
 bool ModelsPageModel::isEnabled() const
 {
-    return m_sessionManager->isEnabled() && m_sessionManager->getSessionStatus().m_status == SessionStatus::Status::ReadyConnected;
+    return m_sessionManager->isEnabled() && (m_sessionManager->getSessionStatus().m_status == SessionStatus::Status::ReadyConnected || !m_sessionManager->getSessionStatus().isRunning());
 }
 
 bool ModelsPageModel::isBlobStorageAvailable() const

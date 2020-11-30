@@ -19,6 +19,9 @@ public:
 
     bool isRunning() const { return m_running; }
 
+    // true when this panel disables the rest of the UI
+    bool isModal() const;
+
     Status getStatus() const;
     QString getRemainingTime() const;
 

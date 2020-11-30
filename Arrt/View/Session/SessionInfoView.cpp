@@ -60,23 +60,27 @@ SessionPanelView::SessionPanelView(SessionPanelModel* model, QWidget* parent)
 
     auto onSessionChanged = [this, stackedLayout]() {
         const bool running = m_model->isRunning();
-        stackedLayout->setCurrentWidget(running ? (QWidget*)m_runningView : m_creationView);
-
-        const bool isConnected = m_model->getStatus() == SessionPanelModel::Status::ReadyConnected;
-        if (isConnected != m_isConnected)
+        bool runningChanged = (m_isRunning != running);
+        if (runningChanged)
         {
-            m_isConnected = isConnected;
-            m_button->setChecked(!isConnected);
+            m_isRunning = running;
+        }
+        stackedLayout->setCurrentWidget(m_isRunning ? (QWidget*)m_runningView : m_creationView);
+
+        const bool isModal = m_model->isModal();
+        if (isModal != m_isModal || runningChanged)
+        {
+            m_isModal = isModal;
+            m_button->setChecked(isModal);
             updateUi();
             reLayout();
         }
     };
     connect(m_model, &SessionPanelModel::sessionChanged, this, onSessionChanged);
     onSessionChanged();
-    if (!m_model->isRunning())
-    {
-        m_button->setChecked(true);
-    };
+    m_button->setChecked(m_isModal);
+    updateUi();
+    reLayout();
 
     auto onToggled = [this, panel]() { panel->setVisible(m_button->isChecked()); updateUi(); };
     connect(m_button, &FlatButton::toggled, this, onToggled);
@@ -150,7 +154,7 @@ void SessionPanelView::reLayout()
 {
     if (auto* p = parentWidget())
     {
-        if (!m_isConnected)
+        if (m_isModal)
         {
             resize(p->size());
         }
@@ -160,7 +164,7 @@ void SessionPanelView::reLayout()
 
 void SessionPanelView::updateUi()
 {
-    if (m_isConnected)
+    if (!m_isModal)
     {
         resize(m_panel->minimumSizeHint());
     }
@@ -168,7 +172,7 @@ void SessionPanelView::updateUi()
 
 void SessionPanelView::paintEvent(QPaintEvent* e)
 {
-    if (!m_isConnected)
+    if (m_isModal)
     {
         QStylePainter sp(this);
         sp.fillRect(rect(), QColor(0, 0, 0, 80));
@@ -178,7 +182,7 @@ void SessionPanelView::paintEvent(QPaintEvent* e)
 
 void SessionPanelView::resizeEvent(QResizeEvent* e)
 {
-    if (m_isConnected)
+    if (!m_isModal)
     {
         QWidget::resizeEvent(e);
         reLayout();

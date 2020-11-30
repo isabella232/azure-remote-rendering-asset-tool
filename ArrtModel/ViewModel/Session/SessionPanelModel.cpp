@@ -28,6 +28,12 @@ SessionPanelModel::SessionPanelModel(ArrSessionManager* sessionManager, Configur
     updateRunning();
 }
 
+bool SessionPanelModel::isModal() const
+{
+    auto status = m_sessionManager->getSessionStatus();
+    return status.isRunning() && status.m_status != SessionStatus::Status::ReadyConnected;
+}
+
 SessionPanelModel::Status SessionPanelModel::getStatus() const
 {
     return m_sessionManager->getSessionStatus().m_status;
@@ -37,7 +43,6 @@ QString SessionPanelModel::getRemainingTime() const
 {
     return TimeValidator::minutesToString(m_remainingMinutes);
 }
-
 
 QString SessionPanelModel::getStringFromStatus(SessionPanelModel::Status status)
 {

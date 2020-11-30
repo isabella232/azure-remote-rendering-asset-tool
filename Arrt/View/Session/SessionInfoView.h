@@ -31,5 +31,7 @@ private:
     void reLayout();
     void updateUi();
 
-    bool m_isConnected = false;
+    // true when the session panel disables the rest of the Render UI
+    bool m_isModal = false;
+    bool m_isRunning = false;
 };
