@@ -76,8 +76,8 @@ public:
     ~ArrSessionManager();
 
 
-	RR::RenderingSessionCreationParams getSessionCreationParams() const;
-	void setSessionCreationParams(RR::RenderingSessionCreationParams params);
+    RR::RenderingSessionCreationParams getSessionCreationParams() const;
+    void setSessionCreationParams(RR::RenderingSessionCreationParams params);
 
     // start a session. It only works if no session is currently running
     bool startSession();
@@ -218,5 +218,5 @@ private:
 
     bool m_autoRotateRoot = false;
 
-	RR::RenderingSessionCreationParams m_sessionCreationParams = { {1, 0,0}, {RR::RenderingSessionVmSize::Standard} };
+    RR::RenderingSessionCreationParams m_sessionCreationParams = {{1, 0, 0}, {RR::RenderingSessionVmSize::Standard}};
 };

@@ -5,7 +5,7 @@
 SessionCreationModel::SessionCreationModel(ArrSessionManager* sessionManager, Configuration* configuration, QObject* parent)
     : SessionModel(sessionManager, configuration, parent)
 {
-	connect(m_sessionManager, &ArrSessionManager::onEnabledChanged, this, [this]() {
+    connect(m_sessionManager, &ArrSessionManager::onEnabledChanged, this, [this]() {
         Q_EMIT onEnabledChanged();
     });
 }
@@ -25,40 +25,40 @@ void SessionCreationModel::setSize(Size size)
 SessionModel::Time SessionCreationModel::getLeaseTime() const
 {
     auto params = m_sessionManager->getSessionCreationParams();
-	return { params.MaxLease.hour, params.MaxLease.minute };
+    return {params.MaxLease.hour, params.MaxLease.minute};
 }
 
 void SessionCreationModel::setLeaseTime(const Time& leaseTime)
 {
-	auto params = m_sessionManager->getSessionCreationParams();
+    auto params = m_sessionManager->getSessionCreationParams();
     params.MaxLease = {(int)leaseTime.getHours(), (int)leaseTime.getMinutes(), 0};
-	m_sessionManager->setSessionCreationParams(params);
+    m_sessionManager->setSessionCreationParams(params);
 }
 
 bool SessionCreationModel::isAutomaticallyExtended() const
 {
-	uint minutesToAdd;
-	bool extendAutomatically;
-	m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
+    uint minutesToAdd;
+    bool extendAutomatically;
+    m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
     return extendAutomatically;
 }
 
 void SessionCreationModel::setAutomaticallyExtended(bool autoExtension)
 {
-	m_sessionManager->setExtensionTime(getExtensionTime().m_totalMinutes, autoExtension);
+    m_sessionManager->setExtensionTime(getExtensionTime().m_totalMinutes, autoExtension);
 }
 
 SessionModel::Time SessionCreationModel::getExtensionTime() const
 {
-	uint minutesToAdd;
-	bool extendAutomatically;
-	m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
-	return minutesToAdd;
+    uint minutesToAdd;
+    bool extendAutomatically;
+    m_sessionManager->getExtensionTime(minutesToAdd, extendAutomatically);
+    return minutesToAdd;
 }
 
 void SessionCreationModel::setExtensionTime(Time extensionTime)
 {
-	m_sessionManager->setExtensionTime(extensionTime.m_totalMinutes, isAutomaticallyExtended());
+    m_sessionManager->setExtensionTime(extensionTime.m_totalMinutes, isAutomaticallyExtended());
 }
 
 // try to start a session

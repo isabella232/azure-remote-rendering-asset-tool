@@ -132,9 +132,9 @@ ArrSessionManager::ArrSessionManager(ArrFrontend* frontEnd, Configuration* confi
     , m_frontend(frontEnd)
     , m_configuration(configuration)
 {
-	m_sessionCreationParams.Size = static_cast<RR::RenderingSessionVmSize>(m_configuration->getUiState("sessionManager:size", (int)m_sessionCreationParams.Size));
-	int leaseTime = m_configuration->getUiState("sessionManager:leaseTime", m_sessionCreationParams.MaxLease.hour * 60 + m_sessionCreationParams.MaxLease.minute);
-	m_sessionCreationParams.MaxLease = { leaseTime / 60, leaseTime % 60, 0 };
+    m_sessionCreationParams.Size = static_cast<RR::RenderingSessionVmSize>(m_configuration->getUiState("sessionManager:size", (int)m_sessionCreationParams.Size));
+    int leaseTime = m_configuration->getUiState("sessionManager:leaseTime", m_sessionCreationParams.MaxLease.hour * 60 + m_sessionCreationParams.MaxLease.minute);
+    m_sessionCreationParams.MaxLease = {leaseTime / 60, leaseTime % 60, 0};
 
     m_extensionMinutes = m_configuration->getUiState("sessionManager:extension", 10);
     m_extendAutomatically = m_configuration->getUiState("sessionManager:extendAutomatically", true);
@@ -227,7 +227,7 @@ ArrSessionManager::~ArrSessionManager()
 
 RR::RenderingSessionCreationParams ArrSessionManager::getSessionCreationParams() const
 {
-	return m_sessionCreationParams;
+    return m_sessionCreationParams;
 }
 
 void ArrSessionManager::setSessionCreationParams(RR::RenderingSessionCreationParams params)
@@ -396,12 +396,12 @@ SessionDescriptor ArrSessionManager::getSessionDescriptor() const
 
 void ArrSessionManager::setExtensionTime(uint minutesToAdd, bool extendAutomatically)
 {
-	if (minutesToAdd != m_extensionMinutes || m_extendAutomatically != extendAutomatically)
-	{
-		m_extensionMinutes = minutesToAdd;
-		m_extendAutomatically = extendAutomatically;
-		changed();
-	}
+    if (minutesToAdd != m_extensionMinutes || m_extendAutomatically != extendAutomatically)
+    {
+        m_extensionMinutes = minutesToAdd;
+        m_extendAutomatically = extendAutomatically;
+        changed();
+    }
 }
 
 void ArrSessionManager::getExtensionTime(uint& outMinutesToAdd, bool& outExtendAutomatically) const
