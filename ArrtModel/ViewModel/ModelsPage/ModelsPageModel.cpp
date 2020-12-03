@@ -289,3 +289,8 @@ void ModelsPageModel::load(LoadingMode mode)
         }
     }
 }
+
+void ModelsPageModel::startNetworkTest()
+{
+    loadModelImpl("Network test model", "builtin://Engine", false);
+}

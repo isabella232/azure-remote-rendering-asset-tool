@@ -49,6 +49,8 @@ public:
     // start loading the selected model
     void load(LoadingMode mode);
 
+    void startNetworkTest();
+
 Q_SIGNALS:
     // notify when a model has been loaded
     void modelLoaded(bool loaded);

@@ -30,10 +30,16 @@ ModelsPageView::ModelsPageView(ModelsPageModel* modelsPageModel)
         refreshButton->setToolTip(tr("Refresh"), tr("Refresh the containers and the blob list currently visualized"));
         connect(refreshButton, &ToolbarButton::clicked, this, [this]() { m_model->refresh(); });
 
+        auto* networkTestButton = new ToolbarButton(tr("Network test"), ArrtStyle::s_refreshIcon);
+        networkTestButton->setToolTip(tr("Network test"), tr("Load a test model and start network test"));
+        connect(networkTestButton, &ToolbarButton::clicked, this, [this]() { m_model->startNetworkTest(); });
+
+
         auto* toolbar = new Toolbar(this);
         toolbar->addButton(m_explorer->createFilesUploadButton());
         toolbar->addButton(m_explorer->createDirectoryUploadButton());
         toolbar->addButton(refreshButton);
+        toolbar->addButton(networkTestButton);
         mainLayout->addWidget(toolbar);
     }
 
