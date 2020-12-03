@@ -36,7 +36,7 @@ ModelsPageModel::ModelsPageModel(AzureStorageManager* storageManager, ArrSession
     QObject::connect(m_sessionManager, &ArrSessionManager::rootIdChanged, this, [this]() {
         if (m_loadingStatus == BlobsListModel::LoadingStatus::LOADED)
         {
-            setCurrentLoadingModel("", "", true);
+            setCurrentLoadingModel("", "", true, false);
             setCurrentLoadingStatus(BlobsListModel::LoadingStatus::NOT_LOADED);
         }
 
@@ -78,7 +78,7 @@ ModelsPageModel::ModelsPageModel(AzureStorageManager* storageManager, ArrSession
             }
             if (sessionStatus.m_status == SessionStatus::Status::ReadyConnected)
             {
-                loadModelImpl(m_currentLoadingModel, m_currentLoadingUri, m_loadingFromExplorer);
+                loadModelImpl(m_currentLoadingModel, m_currentLoadingUri, m_loadingFromExplorer, m_currentLoadingForTests);
             }
         }
     };
@@ -114,11 +114,12 @@ QString ModelsPageModel::getDirectory() const
     return m_explorerModel->getDirectory();
 }
 
-void ModelsPageModel::setCurrentLoadingModel(const QString& model, const QString& sasUri, bool fromExplorer)
+void ModelsPageModel::setCurrentLoadingModel(const QString& model, const QString& sasUri, bool fromExplorer, bool forTests)
 {
     m_currentLoadingModel = model;
     m_currentLoadingUri = sasUri;
     m_loadingFromExplorer = fromExplorer;
+    m_currentLoadingForTests = forTests;
     if (m_loadingFromExplorer)
     {
         if (auto* bm = m_explorerModel->getBlobsModel())
@@ -154,14 +155,14 @@ void ModelsPageModel::setCurrentLoadingProgress(float progress)
     Q_EMIT loadingStatusChanged();
 }
 
-bool ModelsPageModel::loadModelImpl(const QString& path, const QString& sasUri, bool fromExplorer)
+bool ModelsPageModel::loadModelImpl(const QString& path, const QString& sasUri, bool fromExplorer, bool forTest)
 {
     using namespace azure::storage;
 
     if (!sasUri.isEmpty())
     {
         m_loadingProgress = 0;
-        setCurrentLoadingModel(path, sasUri, fromExplorer);
+        setCurrentLoadingModel(path, sasUri, fromExplorer, forTest);
 
         if (!m_sessionManager->getSessionStatus().isRunning())
         {
@@ -183,7 +184,7 @@ bool ModelsPageModel::loadModelImpl(const QString& path, const QString& sasUri, 
                 setCurrentLoadingProgress(progress);
             };
 
-            if (m_sessionManager->loadModelAsync(m_currentLoadingModel, sasUri.toUtf8().data(), loadResult, loadProgress) == RR::Result::Success)
+            if (m_sessionManager->loadModelAsync(m_currentLoadingModel, sasUri.toUtf8().data(), forTest, loadResult, loadProgress) == RR::Result::Success)
             {
                 qDebug() << tr("Success");
             }
@@ -272,7 +273,7 @@ void ModelsPageModel::load(LoadingMode mode)
         case FromSasUri:
         {
             QString path = m_modelSasUri.left(m_modelSasUri.lastIndexOf(QChar('?'))).mid(m_modelSasUri.lastIndexOf(QChar('/')) + 1);
-            loadModelImpl(path, m_modelSasUri, false);
+            loadModelImpl(path, m_modelSasUri, false, false);
             break;
         }
         case FromExplorer:
@@ -283,7 +284,7 @@ void ModelsPageModel::load(LoadingMode mode)
             if (!uri.primary_uri().is_empty())
             {
                 utility::string_t blobUri = m_storageManager->getSasUrl(uri, azure::storage::blob_shared_access_policy::permissions::read);
-                loadModelImpl(path, QString::fromStdWString(blobUri), true);
+                loadModelImpl(path, QString::fromStdWString(blobUri), true, false);
             }
             break;
         }
@@ -292,5 +293,5 @@ void ModelsPageModel::load(LoadingMode mode)
 
 void ModelsPageModel::startNetworkTest()
 {
-    loadModelImpl("Network test model", "builtin://Engine", false);
+    loadModelImpl("Network test model", "builtin://Engine", false, true);
 }

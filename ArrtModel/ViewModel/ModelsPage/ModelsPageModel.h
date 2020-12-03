@@ -71,6 +71,7 @@ private:
 
     QString m_currentLoadingModel;
     QString m_currentLoadingUri;
+    bool m_currentLoadingForTests = false;
     BlobsListModel::LoadingStatus m_loadingStatus = BlobsListModel::LoadingStatus::NOT_LOADED;
     float m_loadingProgress = 0.0f;
     bool m_loadingFromExplorer = false;
@@ -80,9 +81,9 @@ private:
     bool m_canLoad = false;
     bool m_enabled = false;
 
-    bool loadModelImpl(const QString& path, const QString& sasUri, bool fromExplorer);
+    bool loadModelImpl(const QString& path, const QString& sasUri, bool fromExplorer, bool forTest);
 
-    void setCurrentLoadingModel(const QString& model, const QString& sasUri, bool fromExplorer);
+    void setCurrentLoadingModel(const QString& model, const QString& sasUri, bool fromExplorer, bool forTest);
     void setCurrentLoadingStatus(BlobsListModel::LoadingStatus status);
     void setCurrentLoadingProgress(float progress);
 };

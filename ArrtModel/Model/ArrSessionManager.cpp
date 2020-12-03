@@ -827,7 +827,7 @@ void ArrSessionManager::setRunningSession(const RR::ApiHandle<RR::AzureSession>&
     }
 }
 
-RR::Result ArrSessionManager::loadModelAsync(const QString& modelName, const char* assetSAS, RR::LoadResult result, RR::LoadProgress progressCallback)
+RR::Result ArrSessionManager::loadModelAsync(const QString& modelName, const char* assetSAS, bool forTest, RR::LoadResult result, RR::LoadProgress progressCallback)
 {
     if (auto api = getClientApi())
     {
@@ -851,7 +851,7 @@ RR::Result ArrSessionManager::loadModelAsync(const QString& modelName, const cha
             return RR::Result::Fail;
         }
         // Completed lambda is called from the GUI thread
-        m_loadModelAsync->Completed([thisPtr, modelName, result(std::move(result))](const RR::ApiHandle<RR::LoadModelAsync>& finishedAsync) {
+        m_loadModelAsync->Completed([thisPtr, modelName, forTest, result(std::move(result))](const RR::ApiHandle<RR::LoadModelAsync>& finishedAsync) {
             const auto status = finishedAsync->GetStatus();
             if (status != RR::Result::Success)
             {
@@ -868,7 +868,7 @@ RR::Result ArrSessionManager::loadModelAsync(const QString& modelName, const cha
                     qInfo(LoggingCategory::renderingSession)
                         << tr("Loading of model succeeded.");
                     thisPtr->m_modelName = modelName;
-                    thisPtr->setLoadedModel(loadResult);
+                    thisPtr->setLoadedModel(loadResult, forTest);
                     result(status, root);
                 }
                 else
@@ -893,7 +893,7 @@ RR::Result ArrSessionManager::loadModelAsync(const QString& modelName, const cha
     }
 }
 
-void ArrSessionManager::setLoadedModel(RR::ApiHandle<RR::LoadModelResult> loadResult)
+void ArrSessionManager::setLoadedModel(RR::ApiHandle<RR::LoadModelResult> loadResult, bool testModel)
 {
     if (m_session)
     {
@@ -909,6 +909,7 @@ void ArrSessionManager::setLoadedModel(RR::ApiHandle<RR::LoadModelResult> loadRe
         }
     }
     m_loadedModel = std::move(loadResult);
+    m_isRunningTests = testModel;
     Q_EMIT rootIdChanged();
 }
 
@@ -984,4 +985,9 @@ void ArrSessionManager::setAutoRotateRoot(bool autoRotateRoot)
         m_autoRotateRoot = autoRotateRoot;
         Q_EMIT autoRotateRootChanged();
     }
+}
+
+bool ArrSessionManager::isRunningTest() const
+{
+    return m_isRunningTests;
 }

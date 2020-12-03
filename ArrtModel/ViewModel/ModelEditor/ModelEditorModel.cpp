@@ -106,6 +106,10 @@ ModelEditorModel::ModelEditorModel(ArrSessionManager* sessionManager, QObject* p
 
     connect(m_sessionManager, &ArrSessionManager::rootIdChanged, this, [this]() {
         m_selectedMaterial.set({});
+        if (m_sessionManager->isRunningTest())
+        {
+            m_statsPageModel->startAutoCollect();
+        }
         Q_EMIT loadedModelChanged();
     });
 

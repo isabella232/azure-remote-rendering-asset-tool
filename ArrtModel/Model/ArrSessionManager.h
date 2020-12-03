@@ -102,7 +102,7 @@ public:
     RR::ApiHandle<RR::LoadModelResult> loadedModel() const { return m_loadedModel; }
 
     // Load a model asynchronously. Unloads the currently loaded model, and on completion the RootID will be changed
-    RR::Result loadModelAsync(const QString& modelName, const char* assetSAS, RR::LoadResult result, RR::LoadProgress progressCallback = {});
+    RR::Result loadModelAsync(const QString& modelName, const char* assetSAS, bool forTest, RR::LoadResult result, RR::LoadProgress progressCallback = {});
 
     // Unload the currently loaded model
     void unloadModel();
@@ -136,6 +136,8 @@ public:
     bool getAutoRotateRoot() const;
     void setAutoRotateRoot(bool autoRotateRoot);
 
+    bool isRunningTest() const;
+
 Q_SIGNALS:
     void onEnabledChanged();
     void changed();
@@ -150,7 +152,7 @@ Q_SIGNALS:
 private:
     static SessionStatus::Status convertStatus(RR::RenderingSessionStatus status);
 
-    void setLoadedModel(RR::ApiHandle<RR::LoadModelResult> loadResult);
+    void setLoadedModel(RR::ApiHandle<RR::LoadModelResult> loadResult, bool testModel = false);
 
     // called from the main thread, whenever the status is returned by service.
     void updateSessionProperties(RR::RenderingSessionProperties props);
@@ -217,6 +219,7 @@ private:
     RR::Result m_lastError = RR::Result::Success;
 
     bool m_autoRotateRoot = false;
+    bool m_isRunningTests = false;
 
     RR::RenderingSessionCreationParams m_sessionCreationParams = {{1, 0, 0}, {RR::RenderingSessionVmSize::Standard}};
 };
