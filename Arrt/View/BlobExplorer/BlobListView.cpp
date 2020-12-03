@@ -73,12 +73,17 @@ public:
                 case BlobsListModel::LoadingStatus::NOT_LOADED:
                     break;
                 case BlobsListModel::LoadingStatus::FAILED:
+                case BlobsListModel::LoadingStatus::START_SESSION_FAILED:
                     loadingUiRect.setLeft(loadingUiRect.right() - DpiUtils::size(50));
                     drawText(painter, option.widget, BlobsListModel::statusToString(loadingStatus), ArrtStyle::s_blobStatusFont, ArrtStyle::s_failureColor, loadingUiRect);
                     break;
                 case BlobsListModel::LoadingStatus::LOADED:
                     loadingUiRect.setLeft(loadingUiRect.right() - DpiUtils::size(50));
                     drawText(painter, option.widget, BlobsListModel::statusToString(loadingStatus), ArrtStyle::s_blobStatusFont, ArrtStyle::s_successColor, loadingUiRect);
+                    break;
+                case BlobsListModel::LoadingStatus::STARTING_SESSION:
+                    loadingUiRect.setLeft(loadingUiRect.right() - DpiUtils::size(120));
+                    drawText(painter, option.widget, BlobsListModel::statusToString(loadingStatus), ArrtStyle::s_blobStatusFont, option.palette.color(QPalette::Midlight), loadingUiRect);
                     break;
                 case BlobsListModel::LoadingStatus::LOADING:
                     loadingUiRect.setLeft(loadingUiRect.right() - DpiUtils::size(120));

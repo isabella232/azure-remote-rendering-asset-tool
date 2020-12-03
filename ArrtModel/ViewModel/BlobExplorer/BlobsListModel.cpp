@@ -425,19 +425,22 @@ QString BlobsListModel::statusToString(LoadingStatus status)
 {
     switch (status)
     {
-        case LoadingStatus::FAILED:
-            return tr("Failed");
-        case LoadingStatus::LOADED:
-            return tr("Loaded");
-        case LoadingStatus::LOADING:
-            return tr("Loading");
         case LoadingStatus::NOT_LOADED:
             return tr("Not Loaded");
+        case LoadingStatus::STARTING_SESSION:
+            return tr("Starting Session");
+        case LoadingStatus::START_SESSION_FAILED:
+            return tr("Start Session Failed");
+        case LoadingStatus::LOADING:
+            return tr("Loading");
+        case LoadingStatus::LOADED:
+            return tr("Loaded");
+        case LoadingStatus::FAILED:
+            return tr("Failed");
         default:
             return {};
     }
 }
-
 
 void BlobsListModel::setLoadingModelBlobStatus(LoadingStatus status)
 {

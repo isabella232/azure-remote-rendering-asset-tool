@@ -139,7 +139,7 @@ ModelsPageView::ModelsPageView(ModelsPageModel* modelsPageModel)
         m_progressBar->setAccessibleName(tr("Loading progress"));
 
         m_modelLoadingStatus = new ReadOnlyText(this);
-        m_modelLoadingStatus->setFixedWidth(130);
+        m_modelLoadingStatus->setFixedWidth(250);
         m_modelLoadingStatus->setAccessibleName(tr("Loading status"));
 
         h->addWidget(new FormControl({}, m_loadButton));

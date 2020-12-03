@@ -34,7 +34,12 @@ ModelsPageModel::ModelsPageModel(AzureStorageManager* storageManager, ArrSession
     });
 
     QObject::connect(m_sessionManager, &ArrSessionManager::rootIdChanged, this, [this]() {
-        setCurrentLoadingModel({}, true);
+        if (m_loadingStatus == BlobsListModel::LoadingStatus::LOADED)
+        {
+            setCurrentLoadingModel("", "", true);
+            setCurrentLoadingStatus(BlobsListModel::LoadingStatus::NOT_LOADED);
+        }
+
         Q_EMIT modelLoaded(m_sessionManager->loadedModel() != nullptr);
     });
 
@@ -53,6 +58,28 @@ ModelsPageModel::ModelsPageModel(AzureStorageManager* storageManager, ArrSession
         {
             m_enabled = enabled;
             Q_EMIT onEnabledChanged();
+        }
+
+        // as soon as the session is connected, if we were witing for the session to
+        if (m_loadingStatus == BlobsListModel::LoadingStatus::STARTING_SESSION)
+        {
+            auto sessionStatus = m_sessionManager->getSessionStatus();
+            if (!sessionStatus.isRunning())
+            {
+                // the session was stopped or failed
+                if (sessionStatus.m_status == SessionStatus::Status::Error)
+                {
+                    setCurrentLoadingStatus(BlobsListModel::LoadingStatus::START_SESSION_FAILED);
+                }
+                else
+                {
+                    setCurrentLoadingStatus(BlobsListModel::LoadingStatus::NOT_LOADED);
+                }
+            }
+            if (sessionStatus.m_status == SessionStatus::Status::ReadyConnected)
+            {
+                loadModelImpl(m_currentLoadingModel, m_currentLoadingUri, m_loadingFromExplorer);
+            }
         }
     };
 
@@ -87,37 +114,18 @@ QString ModelsPageModel::getDirectory() const
     return m_explorerModel->getDirectory();
 }
 
-void ModelsPageModel::setCurrentLoadingModel(const QString& model, bool fromExplorer)
+void ModelsPageModel::setCurrentLoadingModel(const QString& model, const QString& sasUri, bool fromExplorer)
 {
+    m_currentLoadingModel = model;
+    m_currentLoadingUri = sasUri;
+    m_loadingFromExplorer = fromExplorer;
     if (m_loadingFromExplorer)
     {
         if (auto* bm = m_explorerModel->getBlobsModel())
         {
-            // in case of disconnection or model being explicitly unloaded, reset the currently loaded model in m_blobsListModel
-            bm->setLoadingModelBlobStatus(BlobsListModel::LoadingStatus::NOT_LOADED);
+            bm->setLoadingModelBlob(model);
         }
     }
-
-    m_loadingStatus = BlobsListModel::LoadingStatus::NOT_LOADED;
-    m_loadingProgress = 0;
-
-    m_currentModel = model;
-    if (!m_currentModel.isEmpty())
-    {
-        m_loadingFromExplorer = fromExplorer;
-
-        if (m_loadingFromExplorer)
-        {
-            if (auto* bm = m_explorerModel->getBlobsModel())
-            {
-                bm->setLoadingModelBlob(model);
-                bm->setLoadingModelBlobStatus(BlobsListModel::LoadingStatus::LOADING);
-            }
-        }
-        m_loadingStatus = BlobsListModel::LoadingStatus::LOADING;
-    }
-
-    Q_EMIT loadingStatusChanged();
 }
 
 void ModelsPageModel::setCurrentLoadingStatus(BlobsListModel::LoadingStatus status)
@@ -152,25 +160,37 @@ bool ModelsPageModel::loadModelImpl(const QString& path, const QString& sasUri, 
 
     if (!sasUri.isEmpty())
     {
-        setCurrentLoadingModel(path, fromExplorer);
+        m_loadingProgress = 0;
+        setCurrentLoadingModel(path, sasUri, fromExplorer);
 
-        RR::LoadResult loadResult = [this](RR::Result result, const RR::ApiHandle<RR::Entity>& /*root*/) {
-            qDebug() << tr("LOADED RESULT ") << result;
-            const bool loaded = result == RR::Result::Success;
-            setCurrentLoadingStatus(loaded ? BlobsListModel::LoadingStatus::LOADED : BlobsListModel::LoadingStatus::FAILED);
-        };
-
-        RR::LoadProgress loadProgress = [this](float progress) {
-            setCurrentLoadingProgress(progress);
-        };
-
-        if (m_sessionManager->loadModelAsync(path, sasUri.toUtf8().data(), loadResult, loadProgress) == RR::Result::Success)
+        if (!m_sessionManager->getSessionStatus().isRunning())
         {
-            qDebug() << tr("Success");
+            //start a new session
+            setCurrentLoadingStatus(BlobsListModel::LoadingStatus::STARTING_SESSION);
+            m_sessionManager->startSession();
         }
         else
         {
-            return false;
+            setCurrentLoadingStatus(BlobsListModel::LoadingStatus::LOADING);
+
+            RR::LoadResult loadResult = [this](RR::Result result, const RR::ApiHandle<RR::Entity>& /*root*/) {
+                qDebug() << tr("LOADED RESULT ") << result;
+                const bool loaded = result == RR::Result::Success;
+                setCurrentLoadingStatus(loaded ? BlobsListModel::LoadingStatus::LOADED : BlobsListModel::LoadingStatus::FAILED);
+            };
+
+            RR::LoadProgress loadProgress = [this](float progress) {
+                setCurrentLoadingProgress(progress);
+            };
+
+            if (m_sessionManager->loadModelAsync(m_currentLoadingModel, sasUri.toUtf8().data(), loadResult, loadProgress) == RR::Result::Success)
+            {
+                qDebug() << tr("Success");
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 
@@ -180,7 +200,7 @@ bool ModelsPageModel::loadModelImpl(const QString& path, const QString& sasUri, 
 
 QString ModelsPageModel::getCurrentLoadingModel() const
 {
-    return m_currentModel;
+    return m_currentLoadingModel;
 }
 
 BlobsListModel::LoadingStatus ModelsPageModel::getCurrentLoadingStatus() const

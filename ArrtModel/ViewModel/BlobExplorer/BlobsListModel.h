@@ -84,6 +84,8 @@ public:
     enum class LoadingStatus : char
     {
         NOT_LOADED,
+        STARTING_SESSION,
+        START_SESSION_FAILED,
         LOADING,
         LOADED,
         FAILED
